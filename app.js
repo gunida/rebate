@@ -17,12 +17,10 @@ function processOrders() {
     var files = fs.readdirSync(path.resolve(...inputPath));
 
     files.forEach(file => {
-        console.log('Processing ' + file);
-
         fs.createReadStream(path.resolve(...inputPath, file))
             .pipe(csv.parse({headers:true}))
             .on('error', error => console.error(error))
-            .on('data', row => processOrder(row).catch(error => console.error(error)))
+            .on('data', row => console.log(processOrder(row)))
             .on('end', rowCount => finished(file, rowCount));   
     });
 }
@@ -35,26 +33,49 @@ function finished(file, rowCount) {
     });
 }
 
-async function processOrder(row) {
-    console.log('Processing order', row.organ, row.cash, row.price, row.bonus_ratio);
+function processOrder(row) {
     var orderResult = {};
     config.organs.map((v) => {
         orderResult[v] = 0
     });
 
-    var purchasedAmout = Math.floor(row.cash / row.price);
-    var bonusAmount = Math.floor(purchasedAmout / row.bonus_ratio);
-    var bonusOrgan = config.bonuses[row.organ];
-    orderResult[row.organ] += purchasedAmout;
-    
-    if (bonusOrgan) {
-        for (let i = 0; i < bonusOrgan.length; i++) {
-            const organ = bonusOrgan[i];
+    var purchasedOrgans = checkCash(row.cash, row.price);
+    orderResult[row.organ] += purchasedOrgans;
+
+    var bonusMultiplier = Math.floor(purchasedOrgans / row.bonus_ratio);
+    var bonusResult = addBonusesToOrder(config.bonuses[row.organ], bonusMultiplier);
+    for (const organ in bonusResult) {
+        if (Object.hasOwnProperty.call(bonusResult, organ)) {
+            const bonusAmount = bonusResult[organ];
             orderResult[organ] += bonusAmount;
         }
-    }   
+    }
 
-    console.log(orderResult);
+    return orderResult;
 }
 
+function checkCash(cash, price) {
+    var purchasedAmout = Math.floor(cash / price);
+    
+    return purchasedAmout;
+}
 
+function addBonusesToOrder(bonusOrgans, bonusMultiplier) {
+    if (bonusOrgans && bonusMultiplier > 0) {
+        var orderResult = {};
+        for (let i = 0; i < bonusOrgans.length; i++) {
+            const organ = bonusOrgans[i];
+            if (!orderResult[organ])
+                orderResult[organ] = 0;
+
+            orderResult[organ] += bonusMultiplier;
+        } 
+    }
+    return orderResult;
+}
+
+module.exports = {
+    processOrder,
+    addBonusesToOrder,
+    checkCash
+}
