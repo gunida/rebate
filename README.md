@@ -24,7 +24,8 @@ It is setup as follows:
 
 Fully processed orders are moved to the folder \processed when finished.
 
-## Improvements
+## Possible improvements
 
 - If an order processes a few rows and then hits an error, we want to revert the order or mark the succesful rows somehow, to not run them again.
 - Custom error types for better and more accurate tests "MissingOrganError", "InvalidPriceError", etc.
+- Handle badly formatted csv (ex. missing info, wrong names)
