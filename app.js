@@ -12,7 +12,7 @@ try {
     console.error(error);
 }
 
-function processOrders() {
+async function processOrders() {
     var files = fs.readdirSync(path.resolve(...inputPath));
 
     files.forEach(file => {
@@ -20,14 +20,18 @@ function processOrders() {
             .pipe(csv.parse({headers:true}))
             .on('error', error => console.error(error))
             .on('data', row => console.log(orderHandler.processOrder(row)))
-            .on('end', rowCount => finished(file, rowCount));   
+            .on('end', () => finished(file));   
     });
 }
 
-function finished(file, rowCount) {
-    fs.copyFile(path.resolve(...inputPath, file), path.resolve(...processedPath, file), () => {
-        fs.rm(path.resolve(...inputPath, file), () => {
-            // console.log(`Parsed ${rowCount} rows`);
+async function finished(file) {
+    var inputFilePath = path.resolve(...inputPath, file);
+    var processedDir = path.resolve(...processedPath);
+    var processedFilePath = path.resolve(...processedPath, file);
+    fs.mkdir(processedDir, () => {
+        fs.copyFile(inputFilePath, processedFilePath, () => {
+            await fs.rm(inputFilePath, () => {
+            });
         });
     });
 }
