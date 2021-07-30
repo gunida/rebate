@@ -1,0 +1,8 @@
+{
+    "bonuses": {
+        "heart": ["heart"],
+        "liver": ["lung"],
+        "lung": ["liver", "heart"]
+    },
+    "organs": ["heart", "lung", "liver"]
+}
