@@ -6,10 +6,23 @@ function processOrder(row) {
         orderResult[v] = 0
     });
 
+    if (row.price <= 0)
+    {
+        throw new Error('Organ has 0 price');
+    }
+    if (row.cash < 0)
+    {
+        throw new Error('Negative cash');
+    }
+    if (config.organs.indexOf(row.organ) == -1)
+    {
+        throw new Error('Organ doesn\'t exist in system');
+    }
+
     var purchasedOrgans = checkCash(row.cash, row.price);
     orderResult[row.organ] += purchasedOrgans;
 
-    var bonusMultiplier = Math.floor(purchasedOrgans / row.bonus_ratio);
+    var bonusMultiplier = row.bonus_ratio <= 0 ? 0 : Math.floor(purchasedOrgans / row.bonus_ratio);
     var bonusResult = addBonusesToOrder(config.bonuses[row.organ], bonusMultiplier);
     for (const organ in bonusResult) {
         if (Object.hasOwnProperty.call(bonusResult, organ)) {
