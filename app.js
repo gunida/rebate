@@ -30,7 +30,7 @@ async function finished(file) {
     var processedFilePath = path.resolve(...processedPath, file);
     fs.mkdir(processedDir, () => {
         fs.copyFile(inputFilePath, processedFilePath, () => {
-            await fs.rm(inputFilePath, () => {
+            fs.rm(inputFilePath, () => {
             });
         });
     });
